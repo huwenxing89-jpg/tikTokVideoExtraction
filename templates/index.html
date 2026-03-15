@@ -901,14 +901,8 @@
             // 普通浏览器：通过服务器代理下载（绕过防盗链，支持自定义文件名）
             const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
 
-            // 使用 a 标签触发浏览器下载任务
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
+            // 直接跳转到下载URL，服务器会返回 Content-Disposition: attachment 触发下载
+            window.location.href = downloadUrl;
             showToast('开始下载...');
         }
 
