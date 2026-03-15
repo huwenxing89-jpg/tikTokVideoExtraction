@@ -508,6 +508,51 @@ def proxy_video():
         return f"Proxy error: {str(e)}", 500
 
 
+@app.route('/api/redirect/download')
+def redirect_download():
+    """返回302重定向到抖音CDN，让浏览器直接下载（节省服务器带宽）"""
+    from urllib.parse import quote, unquote
+    from flask import redirect, Response
+
+    video_url = request.args.get('url')
+    filename = request.args.get('filename', 'douyin_video.mp4')
+
+    if not video_url:
+        return jsonify({'success': False, 'message': 'Missing URL'}), 400
+
+    # 解码URL（可能被编码过）
+    video_url = unquote(video_url)
+
+    # 先用服务器请求一次获取最终URL（绕过短链接重定向）
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+            'Referer': 'https://www.douyin.com/',
+        }
+        response = requests.head(video_url, headers=headers, timeout=10, allow_redirects=True)
+        final_url = response.url
+    except:
+        final_url = video_url
+
+    # 创建HTML页面，用meta refresh跳转并设置referrer policy
+    # 这样可以绕过防盗链检查
+    html = f'''<!DOCTYPE html>
+<html>
+<head>
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="refresh" content="0;url={final_url}">
+    <title>正在下载...</title>
+</head>
+<body>
+    <p>正在跳转到下载地址...</p>
+    <p>如果下载没有开始，<a href="{final_url}" referrerpolicy="no-referrer">点击这里</a></p>
+</body>
+</html>'''
+
+    response = Response(html, mimetype='text/html; charset=utf-8')
+    return response
+
+
 if __name__ == '__main__':
     print("=" * 50)
     print("抖音视频下载器 - Web版")
