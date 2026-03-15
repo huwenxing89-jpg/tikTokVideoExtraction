@@ -1,0 +1,77 @@
+name: Deploy to Tencent Cloud Lighthouse
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install gunicorn  # 生产服务器
+
+      - name: Create deployment package
+        run: |
+          tar -czvf deploy.tar.gz \
+            app.py \
+            douyin_downloader.py \
+            requirements.txt \
+            templates \
+            README.md
+
+      - name: Deploy to Tencent Cloud Lighthouse
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+          port: ${{ secrets.TENCENT_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/"
+
+      - name: Execute deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+          port: ${{ secrets.TENCENT_PORT || 22 }}
+          script: |
+            # 设置部署目录
+            DEPLOY_DIR="${{ secrets.TENCENT_DEPLOY_PATH || '/opt/tiktok-video-extraction' }}"
+            mkdir -p $DEPLOY_DIR
+
+            # 解压部署包
+            tar -xzvf /tmp/deploy.tar.gz -C $DEPLOY_DIR
+
+            # 创建必要的目录
+            mkdir -p $DEPLOY_DIR/downloads
+            mkdir -p $DEPLOY_DIR/static
+
+            # 安装依赖
+            cd $DEPLOY_DIR
+            python3 -m pip install -r requirements.txt --quiet
+
+            # 重启服务（使用 systemd）
+            sudo systemctl restart tiktok-extraction || true
+
+            # 如果没有 systemd，使用 supervisor 或手动重启
+            # sudo supervisorctl restart tiktok-extraction || true
+
+            echo "Deployment completed at $(date)"
