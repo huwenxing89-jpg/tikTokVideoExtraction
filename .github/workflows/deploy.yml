@@ -47,19 +47,20 @@ jobs:
 
       - name: Execute deployment script
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || '/opt/tiktok-video-extraction' }}
         with:
           host: ${{ secrets.TENCENT_HOST }}
           username: ${{ secrets.TENCENT_USERNAME }}
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
-          script_stop: true
+          envs: DEPLOY_PATH
           script: |
-            DEPLOY_DIR="${{ secrets.TENCENT_DEPLOY_PATH || '/opt/tiktok-video-extraction' }}"
-            mkdir -p "$DEPLOY_DIR"
-            mkdir -p "$DEPLOY_DIR/downloads"
-            mkdir -p "$DEPLOY_DIR/static"
-            tar -xzvf /tmp/deploy.tar.gz -C "$DEPLOY_DIR"
-            cd "$DEPLOY_DIR"
+            mkdir -p "$DEPLOY_PATH"
+            mkdir -p "$DEPLOY_PATH/downloads"
+            mkdir -p "$DEPLOY_PATH/static"
+            tar -xzvf /tmp/deploy.tar.gz -C "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
             python3 -m pip install -r requirements.txt --quiet
             sudo systemctl restart tiktok-extraction || true
             echo "Deployment completed at $(date)"
