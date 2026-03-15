@@ -898,21 +898,9 @@
                 return;
             }
 
-            // 普通浏览器：通过服务器代理下载（支持自定义文件名）
-            const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
-
-            // 使用 iframe 触发下载
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = downloadUrl;
-            document.body.appendChild(iframe);
-
-            showToast('开始下载...');
-
-            // 延迟移除 iframe
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 5000);
+            // 普通浏览器：直接打开抖音URL下载（速度更快）
+            window.open(currentVideoUrl, '_blank');
+            showToast('正在打开下载链接...');
         }
 
         // 下载单张图片
