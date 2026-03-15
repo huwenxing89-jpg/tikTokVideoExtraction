@@ -15,17 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install waitress
-
       - name: Create deployment package
         run: |
           tar -czvf deploy.tar.gz \
@@ -35,7 +24,7 @@ jobs:
             templates \
             README.md
 
-      - name: Deploy to Tencent Cloud Windows Server
+      - name: Copy files to server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.TENCENT_HOST }}
@@ -43,12 +32,12 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
           source: "deploy.tar.gz"
-          target: "C:/temp/"
+          target: "/c/temp/"
 
-      - name: Execute deployment script (PowerShell)
+      - name: Deploy on server
         uses: appleboy/ssh-action@v1.0.3
         env:
-          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || 'C:/inetpub/wwwroot/tikTokVideoExtraction' }}
+          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || '/c/inetpub/wwwroot/tikTokVideoExtraction' }}
         with:
           host: ${{ secrets.TENCENT_HOST }}
           username: ${{ secrets.TENCENT_USERNAME }}
@@ -56,23 +45,11 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           envs: DEPLOY_PATH
           script: |
-            $deployPath = $env:DEPLOY_PATH
-            Write-Host "Deploying to: $deployPath"
-
-            # Create directories
-            New-Item -ItemType Directory -Force -Path $deployPath
-            New-Item -ItemType Directory -Force -Path "$deployPath/downloads"
-            New-Item -ItemType Directory -Force -Path "$deployPath/static"
-
-            # Extract files
-            tar -xzvf C:/temp/deploy.tar.gz -C $deployPath
-
-            # Install Python dependencies
-            cd $deployPath
+            mkdir -p "$DEPLOY_PATH"
+            mkdir -p "$DEPLOY_PATH/downloads"
+            mkdir -p "$DEPLOY_PATH/static"
+            tar -xzvf /c/temp/deploy.tar.gz -C "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
             pip install -r requirements.txt --quiet
             pip install waitress --quiet
-
-            # Restart the Windows service (if configured)
-            # Restart-Service -Name "TikTokExtraction" -Force
-
-            Write-Host "Deployment completed at $(Get-Date)"
+            echo "Deployment completed at $(date)"
