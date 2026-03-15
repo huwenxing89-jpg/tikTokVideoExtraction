@@ -15,6 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create deployment package
+        run: |
+          tar -czvf deploy.tar.gz \
+            app.py \
+            douyin_downloader.py \
+            requirements.txt \
+            templates \
+            README.md
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -29,11 +38,26 @@ jobs:
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}'"
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\downloads'"
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\static'"
-            powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://ghproxy.com/https://github.com/${{ github.repository }}/archive/refs/heads/main.zip' -OutFile 'C:\temp\app.zip' -UseBasicParsing"
-            powershell -Command "if (Test-Path 'C:\temp\app.zip') { Write-Host 'Download successful' } else { Write-Error 'Download failed'; exit 1 }"
-            powershell -Command "Expand-Archive -Path 'C:\temp\app.zip' -DestinationPath '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
-            powershell -Command "Get-ChildItem -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main' -Recurse | Move-Item -Destination '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
-            powershell -Command "Remove-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main' -Force -Recurse -ErrorAction SilentlyContinue"
+
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+          port: ${{ secrets.TENCENT_PORT || 22 }}
+          source: "app.py,douyin_downloader.py,requirements.txt,README.md,templates"
+          target: "${{ secrets.TENCENT_DEPLOY_PATH }}"
+          strip_components: 0
+
+      - name: Install dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+          port: ${{ secrets.TENCENT_PORT || 22 }}
+          script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install waitress"
             powershell -Command "Write-Host 'Deployment completed'"
