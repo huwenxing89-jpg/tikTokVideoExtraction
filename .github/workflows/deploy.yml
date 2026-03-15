@@ -15,15 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create deployment package
-        run: |
-          tar -czvf deploy.tar.gz \
-            app.py \
-            douyin_downloader.py \
-            requirements.txt \
-            templates \
-            README.md
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -50,7 +41,7 @@ jobs:
           target: "${{ secrets.TENCENT_DEPLOY_PATH }}"
           strip_components: 0
 
-      - name: Install dependencies
+      - name: Install dependencies and restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.TENCENT_HOST }}
@@ -60,4 +51,7 @@ jobs:
           script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
-            powershell -Command "Write-Host 'Deployment completed'"
+            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue"
+            powershell -Command "Start-Sleep -Seconds 2"
+            powershell -Command "Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
+            powershell -Command "Write-Host 'Deployment completed, service running on port 5000'"
