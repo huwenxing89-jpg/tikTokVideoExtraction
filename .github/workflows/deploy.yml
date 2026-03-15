@@ -1,4 +1,4 @@
-name: Deploy to Tencent Cloud Lighthouse
+name: Deploy to Tencent Cloud Windows Server
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install gunicorn
+          pip install waitress
 
       - name: Create deployment package
         run: |
@@ -35,7 +35,7 @@ jobs:
             templates \
             README.md
 
-      - name: Deploy to Tencent Cloud Lighthouse
+      - name: Deploy to Tencent Cloud Windows Server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.TENCENT_HOST }}
@@ -43,12 +43,12 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
           source: "deploy.tar.gz"
-          target: "/tmp/"
+          target: "C:/temp/"
 
-      - name: Execute deployment script
+      - name: Execute deployment script (PowerShell)
         uses: appleboy/ssh-action@v1.0.3
         env:
-          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || '/opt/tiktok-video-extraction' }}
+          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || 'C:/inetpub/wwwroot/tikTokVideoExtraction' }}
         with:
           host: ${{ secrets.TENCENT_HOST }}
           username: ${{ secrets.TENCENT_USERNAME }}
@@ -56,11 +56,23 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           envs: DEPLOY_PATH
           script: |
-            mkdir -p "$DEPLOY_PATH"
-            mkdir -p "$DEPLOY_PATH/downloads"
-            mkdir -p "$DEPLOY_PATH/static"
-            tar -xzvf /tmp/deploy.tar.gz -C "$DEPLOY_PATH"
-            cd "$DEPLOY_PATH"
-            python3 -m pip install -r requirements.txt --quiet
-            sudo systemctl restart tiktok-extraction || true
-            echo "Deployment completed at $(date)"
+            $deployPath = $env:DEPLOY_PATH
+            Write-Host "Deploying to: $deployPath"
+
+            # Create directories
+            New-Item -ItemType Directory -Force -Path $deployPath
+            New-Item -ItemType Directory -Force -Path "$deployPath/downloads"
+            New-Item -ItemType Directory -Force -Path "$deployPath/static"
+
+            # Extract files
+            tar -xzvf C:/temp/deploy.tar.gz -C $deployPath
+
+            # Install Python dependencies
+            cd $deployPath
+            pip install -r requirements.txt --quiet
+            pip install waitress --quiet
+
+            # Restart the Windows service (if configured)
+            # Restart-Service -Name "TikTokExtraction" -Force
+
+            Write-Host "Deployment completed at $(Get-Date)"

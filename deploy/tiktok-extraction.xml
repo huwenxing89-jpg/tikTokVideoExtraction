@@ -1,0 +1,20 @@
+# Windows Service Wrapper Configuration
+# 用于将 Flask 应用注册为 Windows 服务
+
+<service>
+  <id>tiktok-extraction</id>
+  <name>TikTok Video Extraction</name>
+  <description>TikTok Video Extraction Web Application</description>
+  <executable>C:\Python310\python.exe</executable>
+  <arguments>-m waitress --host=0.0.0.0 --port=6000 --threads=4 app:app</arguments>
+  <workingdirectory>C:\inetpub\wwwroot\tikTokVideoExtraction</workingdirectory>
+  <logpath>C:\inetpub\wwwroot\tikTokVideoExtraction\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="20 sec"/>
+  <onfailure action="none"/>
+  <resetfailure>1 hour</resetfailure>
+</service>
