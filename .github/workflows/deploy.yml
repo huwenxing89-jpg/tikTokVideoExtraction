@@ -25,13 +25,14 @@ jobs:
           command_timeout: 10m
           script_stop: true
           script: |
+            powershell -Command "New-Item -ItemType Directory -Force -Path 'C:\temp'"
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}'"
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\downloads'"
             powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\static'"
             powershell -Command "Invoke-WebRequest -Uri 'https://github.com/${{ github.repository }}/archive/refs/heads/main.zip' -OutFile 'C:\temp\app.zip'"
             powershell -Command "Expand-Archive -Path 'C:\temp\app.zip' -DestinationPath '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
             powershell -Command "Move-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main\*' -Destination '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
-            powershell -Command "Remove-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main' -Force -Recurse"
+            powershell -Command "Remove-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main' -Force -Recurse -ErrorAction SilentlyContinue"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install -r requirements.txt --quiet"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install waitress --quiet"
             powershell -Command "Write-Host 'Deployment completed'"
