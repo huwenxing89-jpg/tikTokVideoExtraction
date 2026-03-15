@@ -898,12 +898,18 @@
                 return;
             }
 
-            // 普通浏览器：通过重定向直接从抖音CDN下载（节省服务器带宽）
-            const downloadUrl = '/api/redirect/download?url=' + encodeURIComponent(currentVideoUrl) + '&filename=' + encodeURIComponent(filename);
+            // 普通浏览器：通过服务器代理下载（绕过防盗链，支持自定义文件名）
+            const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
 
-            // 直接打开新窗口下载
-            window.open(downloadUrl, '_blank');
-            showToast('正在跳转到下载地址...');
+            // 使用 a 标签触发浏览器下载任务
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('开始下载...');
         }
 
         // 下载单张图片
