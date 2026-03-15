@@ -51,7 +51,6 @@ jobs:
           script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
-            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue"
-            powershell -Command "Start-Sleep -Seconds 2"
+            powershell -Command "$procs = Get-Process python -ErrorAction SilentlyContinue; if ($procs) { Stop-Process -Name python -Force; Write-Host 'Stopped existing Python processes'; Start-Sleep -Seconds 2 } else { Write-Host 'No existing Python processes found' }"
             powershell -Command "Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
-            powershell -Command "Write-Host 'Deployment completed, service running on port 5000'"
+            powershell -Command "Start-Sleep -Seconds 3; $proc = Get-Process python -ErrorAction SilentlyContinue; $port = netstat -ano | findstr ':5000.*LISTENING'; if ($proc -and $port) { Write-Host 'Service started successfully on port 5000' } else { Write-Error 'Failed to start service'; exit 1 }"
