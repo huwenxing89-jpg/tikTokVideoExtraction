@@ -494,7 +494,10 @@ def proxy_video():
 
         # 如果是下载模式，添加 Content-Disposition 头
         if download == '1':
-            response_headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+            # 对中文文件名进行 URL 编码
+            from urllib.parse import quote
+            encoded_filename = quote(filename, safe='')
+            response_headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
 
         return app.response_class(
             generate(),
