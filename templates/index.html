@@ -887,10 +887,21 @@
             let filename = currentTitle || 'douyin_video';
             filename = filename.replace(/[<>:"/\\|?*\r\n]/g, '_').substring(0, 100) + '.mp4';
 
-            // 直接使用浏览器下载
+            // 检测是否在微信内置浏览器
+            const isWechat = /MicroMessenger/i.test(navigator.userAgent);
+
+            if (isWechat) {
+                // 微信环境：播放视频，用户可长按保存
+                showToast('长按视频可保存到相册');
+                // 滚动到视频区域
+                document.getElementById('videoPreviewBox').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            // 普通浏览器：通过服务器代理下载（支持自定义文件名）
             const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
 
-            // 创建隐藏的 iframe 触发下载
+            // 使用 iframe 触发下载
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = downloadUrl;
