@@ -58,6 +58,6 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
           script: |
-            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install -r requirements.txt"
-            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install waitress"
+            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
+            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
             powershell -Command "Write-Host 'Deployment completed'"
