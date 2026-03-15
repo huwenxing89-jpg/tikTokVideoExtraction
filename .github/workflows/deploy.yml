@@ -15,34 +15,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create deployment package
-        run: |
-          tar -czvf deploy.tar.gz \
-            app.py \
-            douyin_downloader.py \
-            requirements.txt \
-            templates \
-            README.md
-
-      - name: Deploy via SSH with PowerShell
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH || 'C:\inetpub\wwwroot\tikTokVideoExtraction' }}
         with:
           host: ${{ secrets.TENCENT_HOST }}
           username: ${{ secrets.TENCENT_USERNAME }}
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
-          envs: DEPLOY_PATH
+          command_timeout: 10m
           script_stop: true
           script: |
-            powershell -Command "New-Item -ItemType Directory -Force -Path \"$env:DEPLOY_PATH\""
-            powershell -Command "New-Item -ItemType Directory -Force -Path \"$env:DEPLOY_PATH\downloads\""
-            powershell -Command "New-Item -ItemType Directory -Force -Path \"$env:DEPLOY_PATH\static\""
+            powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}'"
+            powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\downloads'"
+            powershell -Command "New-Item -ItemType Directory -Force -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\static'"
             powershell -Command "Invoke-WebRequest -Uri 'https://github.com/${{ github.repository }}/archive/refs/heads/main.zip' -OutFile 'C:\temp\app.zip'"
-            powershell -Command "Expand-Archive -Path 'C:\temp\app.zip' -DestinationPath \"$env:DEPLOY_PATH\" -Force"
-            powershell -Command "Move-Item -Path \"$env:DEPLOY_PATH\tikTokVideoExtraction-main\*\" -Destination \"$env:DEPLOY_PATH\" -Force"
-            powershell -Command "Remove-Item -Path \"$env:DEPLOY_PATH\tikTokVideoExtraction-main\" -Force -Recurse"
-            powershell -Command "cd $env:DEPLOY_PATH; pip install -r requirements.txt --quiet"
-            powershell -Command "cd $env:DEPLOY_PATH; pip install waitress --quiet"
+            powershell -Command "Expand-Archive -Path 'C:\temp\app.zip' -DestinationPath '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
+            powershell -Command "Move-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main\*' -Destination '${{ secrets.TENCENT_DEPLOY_PATH }}' -Force"
+            powershell -Command "Remove-Item -Path '${{ secrets.TENCENT_DEPLOY_PATH }}\tikTokVideoExtraction-main' -Force -Recurse"
+            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install -r requirements.txt --quiet"
+            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; pip install waitress --quiet"
             powershell -Command "Write-Host 'Deployment completed'"
