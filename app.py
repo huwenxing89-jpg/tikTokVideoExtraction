@@ -460,6 +460,8 @@ def download_file(filename):
 def proxy_video():
     """代理视频流，用于前端预览和下载"""
     video_url = request.args.get('url')
+    download = request.args.get('download', '0')
+    filename = request.args.get('filename', 'douyin_video.mp4')
     if not video_url:
         return "Missing URL", 400
 
@@ -484,19 +486,23 @@ def proxy_video():
                 if chunk:
                     yield chunk
 
+        response_headers = {
+            'Content-Length': content_length,
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'public, max-age=3600',
+        }
+
+        # 如果是下载模式，添加 Content-Disposition 头
+        if download == '1':
+            response_headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+
         return app.response_class(
             generate(),
             mimetype=content_type,
-            headers={
-                'Content-Length': content_length,
-                'Accept-Ranges': 'bytes',
-                'Cache-Control': 'public, max-age=3600',
-            }
+            headers=response_headers
         )
     except Exception as e:
         return f"Proxy error: {str(e)}", 500
-    except Exception as e:
-        return str(e), 500
 
 
 if __name__ == '__main__':

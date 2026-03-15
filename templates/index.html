@@ -790,73 +790,42 @@
                 return;
             }
 
-            const btn = document.querySelector('.btn-download');
-            const originalText = btn.textContent;
-            btn.textContent = '⏳ 下载中...';
-            btn.disabled = true;
+            // 清理文件名
+            let filename = currentTitle || 'douyin_video';
+            filename = filename.replace(/[<>:"/\\|?*\r\n]/g, '_').substring(0, 100) + '.mp4';
 
-            try {
-                // 使用代理URL下载
-                const proxyUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl);
+            // 直接使用浏览器下载
+            const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
 
-                // 使用fetch获取视频
-                const response = await fetch(proxyUrl);
-                if (!response.ok) {
-                    throw new Error('下载失败: ' + response.status);
-                }
+            // 创建隐藏的 iframe 触发下载
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = downloadUrl;
+            document.body.appendChild(iframe);
 
-                const blob = await response.blob();
+            showToast('开始下载...');
 
-                if (blob.size < 1000) {
-                    throw new Error('视频获取失败，请重试');
-                }
-
-                // 清理文件名
-                let filename = currentTitle || 'douyin_video';
-                filename = filename.replace(/[<>:"/\\|?*\r\n]/g, '_').substring(0, 100) + '.mp4';
-
-                // 创建下载链接
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-
-                // 延迟清理
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                }, 1000);
-
-                showToast('下载成功！');
-            } catch (error) {
-                showError('下载失败: ' + error.message);
-                console.error(error);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+            // 延迟移除 iframe
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 5000);
         }
 
         // 下载单张图片
         async function downloadImage(url, name) {
             try {
                 showToast('正在下载图片...');
-                const response = await fetch(url);
-                const blob = await response.blob();
 
                 let filename = (name || 'douyin_image').replace(/[<>:"/\\|?*\r\n]/g, '_').substring(0, 100) + '.jpg';
 
-                const blobUrl = window.URL.createObjectURL(blob);
+                // 直接打开链接下载
                 const link = document.createElement('a');
-                link.href = blobUrl;
+                link.href = url;
                 link.download = filename;
+                link.target = '_blank';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
 
                 showToast('下载成功！');
             } catch (error) {
