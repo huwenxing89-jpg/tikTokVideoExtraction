@@ -510,9 +510,9 @@ def proxy_video():
 
 @app.route('/api/redirect/download')
 def redirect_download():
-    """返回302重定向到抖音CDN，让浏览器直接下载（节省服务器带宽）"""
+    """返回HTML页面，用JS触发直接下载（节省服务器带宽）"""
     from urllib.parse import quote, unquote
-    from flask import redirect, Response
+    from flask import Response
 
     video_url = request.args.get('url')
     filename = request.args.get('filename', 'douyin_video.mp4')
@@ -534,18 +534,40 @@ def redirect_download():
     except:
         final_url = video_url
 
-    # 创建HTML页面，用meta refresh跳转并设置referrer policy
-    # 这样可以绕过防盗链检查
+    # 对URL进行HTML转义
+    from html import escape
+    safe_url = escape(final_url)
+    safe_filename = escape(filename)
+
+    # 创建HTML页面，用JS触发下载
     html = f'''<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="refresh" content="0;url={final_url}">
     <title>正在下载...</title>
+    <style>
+        body {{ font-family: sans-serif; text-align: center; padding: 50px; }}
+        .loading {{ color: #666; }}
+        .error {{ color: #c00; display: none; }}
+        a {{ color: #1677ff; }}
+    </style>
 </head>
 <body>
-    <p>正在跳转到下载地址...</p>
-    <p>如果下载没有开始，<a href="{final_url}" referrerpolicy="no-referrer">点击这里</a></p>
+    <p class="loading">正在下载，请稍候...</p>
+    <p class="error">如果下载没有开始，请 <a href="{safe_url}" referrerpolicy="no-referrer" download="{safe_filename}">点击这里</a></p>
+    <script>
+        var link = document.createElement('a');
+        link.href = "{safe_url}";
+        link.download = "{safe_filename}";
+        link.referrerPolicy = "no-referrer";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function() {{
+            document.querySelector('.loading').textContent = '下载已开始，请查看浏览器下载管理器';
+        }}, 2000);
+    </script>
 </body>
 </html>'''
 
