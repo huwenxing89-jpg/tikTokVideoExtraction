@@ -61,6 +61,6 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 3m
           script: |
-            powershell -Command "Stop-Service -Name TikTokService -Force -ErrorAction SilentlyContinue"
-            powershell -Command "Start-Service -Name TikTokService"
-            powershell -Command "Start-Sleep -Seconds 8; netstat -ano | Select-String ':5000'"
+            powershell -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c net stop TikTokService & net start TikTokService' -WindowStyle Hidden"
+            cmd /c "ping -n 12 127.0.0.1 >nul"
+            cmd /c "netstat -ano | findstr :5000"
