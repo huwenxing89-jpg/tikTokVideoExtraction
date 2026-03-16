@@ -61,9 +61,9 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 3m
           script: |
-            powershell -Command "Get-Process -Name python -ErrorAction SilentlyContinue | Stop-Process -Force"
-            powershell -Command "@('@echo off', 'cd /d ${{ secrets.TENCENT_DEPLOY_PATH }}', 'python -m waitress --host=0.0.0.0 --port=5000 app:app') | Out-File -FilePath 'C:\temp\start_service.bat' -Encoding ASCII -Force"
-            cmd /c "schtasks /delete /tn TikTokService /f 2>nul"
-            cmd /c "schtasks /create /tn TikTokService /tr \"C:\temp\start_service.bat\" /sc ONSTART /rl HIGHEST /f"
+            cmd /c "taskkill /F /IM python.exe 2>nul"
+            cmd /c "echo @echo off > C:\temp\start_service.bat"
+            cmd /c "echo cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} >> C:\temp\start_service.bat"
+            cmd /c "echo python -m waitress --host=0.0.0.0 --port=5000 app:app >> C:\temp\start_service.bat"
             cmd /c "schtasks /run /tn TikTokService"
-            powershell -Command "Start-Sleep -Seconds 8; netstat -ano | findstr :5000"
+            cmd /c "ping -n 10 127.0.0.1 >nul && netstat -ano | findstr :5000"
