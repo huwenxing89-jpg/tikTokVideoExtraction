@@ -48,11 +48,12 @@ jobs:
           username: ${{ secrets.TENCENT_USERNAME }}
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
+          command_timeout: 10m
           script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
-            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue"
+            powershell -Command "if (Get-Process python -ErrorAction SilentlyContinue) { Stop-Process -Name python -Force; Write-Host 'Stopped python process' } else { Write-Host 'No python process running' }"
             powershell -Command "Start-Sleep -Seconds 3"
-            powershell -Command "Start-Process python -ArgumentList '-m waitress --host=0.0.0.0 --port=5000 app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
+            powershell -Command "Write-Host 'Starting service...'; Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
             powershell -Command "Start-Sleep -Seconds 5"
-            powershell -Command "Get-Process python | Format-Table Id, StartTime, ProcessName -AutoSize"
+            powershell -Command "Write-Host 'Checking service status...'; Get-Process python | Format-Table Id, StartTime, ProcessName -AutoSize; netstat -ano | findstr ':5000'"
