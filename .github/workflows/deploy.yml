@@ -61,8 +61,6 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 3m
           script: |
-            cmd /c "net stop TikTokService"
-            cmd /c "ping -n 3 127.0.0.1 >nul"
-            cmd /c "net start TikTokService"
+            cmd /c "net stop TikTokService & ping -n 3 127.0.0.1 >nul & net start TikTokService"
             cmd /c "ping -n 5 127.0.0.1 >nul"
             cmd /c "netstat -ano | findstr :5000"
