@@ -544,7 +544,10 @@
             <div class="input-group">
                 <label>请粘贴抖音分享链接</label>
                 <div class="input-wrapper">
-                    <textarea id="shareInput" placeholder="例如：5.33 复制打开抖音，看看【作者】视频标题... https://v.douyin.com/xxx/"></textarea>
+                    <div style="position:relative;flex:1;">
+                        <textarea id="shareInput" placeholder="例如：5.33 复制打开抖音，看看【作者】视频标题... https://v.douyin.com/xxx/" style="width:100%;padding:15px 35px 15px 15px;min-height:80px;"></textarea>
+                        <span id="clearIcon" onclick="clearInput()" style="position:absolute;right:10px;top:10px;width:24px;height:24px;display:none;align-items:center;justify-content:center;cursor:pointer;color:#aaa;font-size:16px;background:#f0f0f0;border-radius:50%;user-select:none;">✕</span>
+                    </div>
                     <button class="btn btn-primary" id="parseBtn" onclick="parseVideo()">
                         提取
                     </button>
@@ -669,6 +672,23 @@
             }
             return num.toString();
         }
+
+        function clearInput() {
+            document.getElementById('shareInput').value = '';
+            document.getElementById('clearIcon').style.display = 'none';
+            document.getElementById('resultBox').classList.remove('active');
+            hideError();
+        }
+
+        // 监听输入框变化
+        document.addEventListener('DOMContentLoaded', function() {
+            var shareInput = document.getElementById('shareInput');
+            var clearIcon = document.getElementById('clearIcon');
+
+            shareInput.addEventListener('input', function() {
+                clearIcon.style.display = this.value.length > 0 ? 'flex' : 'none';
+            });
+        });
 
         async function parseVideo() {
             const input = document.getElementById('shareInput').value.trim();
@@ -954,9 +974,9 @@
                 html += '.btn-secondary{background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);}';
                 html += '</style></head><body>';
                 html += '<div class="tip">长按视频可保存到相册</div>';
-                html += '<video id="video" controls autoplay playsinline src="' + currentVideoUrl + '"></video>';
+                html += '<video id="video" controls autoplay playsinline webkit-playsinline x5-video-player-type="h5" referrerpolicy="no-referrer" src="' + currentVideoUrl + '"></video>';
                 html += '<div class="btn-group">';
-                html += '<a class="btn btn-primary" href="' + currentVideoUrl + '" download="douyin_video.mp4" target="_blank">点击下载视频</a>';
+                html += '<a class="btn btn-primary" href="' + currentVideoUrl + '" download="douyin_video.mp4" target="_blank" referrerpolicy="no-referrer">点击下载视频</a>';
                 html += '</div>';
                 html += '</body></html>';
                 newWindow.document.write(html);
