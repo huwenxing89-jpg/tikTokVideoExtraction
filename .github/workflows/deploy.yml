@@ -50,4 +50,7 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 5m
           script: |
-            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt; python -m pip install waitress; Stop-Process -Name python -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process -FilePath 'python' -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden -RedirectStandardOutput 'C:\temp\service.log' -RedirectStandardError 'C:\temp\service_error.log'; Start-Sleep -Seconds 5; netstat -ano | findstr ':5000'"
+            cmd /c "cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} && python -m pip install -r requirements.txt && python -m pip install waitress"
+            cmd /c "taskkill /F /IM python.exe 2>nul"
+            cmd /c "cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} && start /b python -m waitress --host=0.0.0.0 --port=5000 app:app"
+            cmd /c "ping -n 6 127.0.0.1 >nul && netstat -ano | findstr :5000"
