@@ -41,7 +41,7 @@ jobs:
           target: "${{ secrets.TENCENT_DEPLOY_PATH }}"
           strip_components: 0
 
-      - name: Install dependencies and restart service
+      - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.TENCENT_HOST }}
@@ -50,4 +50,15 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 5m
           script: |
-            cmd /c "cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} && python -m pip install -r requirements.txt && python -m pip install waitress && taskkill /F /IM python.exe 2>nul && cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} && start /b python -m waitress --host=0.0.0.0 --port=5000 app:app && ping -n 6 127.0.0.1 >nul && netstat -ano | findstr :5000"
+            cmd /c "cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} && python -m pip install -r requirements.txt && python -m pip install waitress"
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+          port: ${{ secrets.TENCENT_PORT || 22 }}
+          command_timeout: 2m
+          script: |
+            cmd /c "taskkill /F /IM python.exe 2>nul & cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} & start /b python -m waitress --host=0.0.0.0 --port=5000 app:app"
