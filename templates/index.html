@@ -518,6 +518,18 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
+
+        .btn-direct {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-direct:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -594,6 +606,9 @@
 
                 <button class="btn btn-download" id="downloadBtn" onclick="downloadVideo()">
                     💾 保存到本地
+                </button>
+                <button class="btn btn-download btn-direct" id="directDownloadBtn" style="display:none; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);" onclick="directDownload()">
+                    🚀 直链下载（省流量）
                 </button>
                 <button class="btn btn-download btn-download-current" id="downloadCurrentBtn" style="display:none" onclick="downloadCurrentImage()">
                     📷 下载当前图片
@@ -717,6 +732,7 @@
                         downloadCurrentBtn.style.display = 'block';
                         downloadAllBtn.style.display = 'block';
                         qualitySelector.style.display = 'none';
+                        document.getElementById('directDownloadBtn').style.display = 'none';
 
                         // 初始化图片轮播
                         currentImageIndex = 0;
@@ -739,6 +755,9 @@
 
                         const videoPlayer = document.getElementById('videoPlayer');
                         loadVideo(currentVideoUrl);
+
+                        // 显示直链下载按钮
+                        document.getElementById('directDownloadBtn').style.display = 'block';
                     }
 
                     document.getElementById('resultBox').classList.add('active');
@@ -898,12 +917,46 @@
                 return;
             }
 
-            // 普通浏览器：通过服务器代理下载（绕过防盗链，支持自定义文件名）
-            const downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
-
-            // 直接跳转到下载URL，服务器会返回 Content-Disposition: attachment 触发下载
+            // 普通浏览器：通过服务器代理下载（流式传输，支持自定义文件名）
+            var downloadUrl = '/api/proxy/video?url=' + encodeURIComponent(currentVideoUrl) + '&download=1&filename=' + encodeURIComponent(filename);
             window.location.href = downloadUrl;
             showToast('开始下载...');
+        }
+
+        // 直链下载（打开新窗口，不占用服务器带宽）
+        function directDownload() {
+            if (!currentVideoUrl) {
+                showError('请先提取视频');
+                return;
+            }
+
+            // 检测是否在微信内置浏览器
+            var isWechat = /MicroMessenger/i.test(navigator.userAgent);
+            if (isWechat) {
+                showToast('长按视频可保存到相册');
+                document.getElementById('videoPreviewBox').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            // 创建一个中间页面，设置 no-referrer
+            var newWindow = window.open('', '_blank');
+            if (newWindow) {
+                var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+                html += '<meta name="referrer" content="no-referrer">';
+                html += '<title>视频下载</title>';
+                html += '<style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;}';
+                html += 'video{max-width:100%;max-height:100vh;}';
+                html += '.tip{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:10px 20px;border-radius:5px;font-family:sans-serif;z-index:100;}';
+                html += '</style></head><body>';
+                html += '<div class="tip">长按视频或右键选择"另存为"保存</div>';
+                html += '<video controls autoplay playsinline src="' + currentVideoUrl + '"></video>';
+                html += '</body></html>';
+                newWindow.document.write(html);
+                newWindow.document.close();
+                showToast('已打开视频页面');
+            } else {
+                showToast('请允许弹窗');
+            }
         }
 
         // 下载单张图片
