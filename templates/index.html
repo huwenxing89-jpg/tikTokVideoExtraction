@@ -608,7 +608,7 @@
                     💾 保存到本地
                 </button>
                 <button class="btn btn-download btn-direct" id="directDownloadBtn" style="display:none; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);" onclick="directDownload()">
-                    🚀 直链下载（省流量）
+                    🚀 直链下载（速度快）
                 </button>
                 <button class="btn btn-download btn-download-current" id="downloadCurrentBtn" style="display:none" onclick="downloadCurrentImage()">
                     📷 下载当前图片
@@ -943,13 +943,21 @@
             if (newWindow) {
                 var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
                 html += '<meta name="referrer" content="no-referrer">';
+                html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
                 html += '<title>视频下载</title>';
-                html += '<style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;}';
-                html += 'video{max-width:100%;max-height:100vh;}';
-                html += '.tip{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:10px 20px;border-radius:5px;font-family:sans-serif;z-index:100;}';
+                html += '<style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;padding:10px;}';
+                html += 'video{max-width:100%;max-height:70vh;}';
+                html += '.tip{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:100;white-space:nowrap;}';
+                html += '.btn-group{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap;justify-content:center;}';
+                html += '.btn{padding:12px 24px;border:none;border-radius:8px;font-size:14px;cursor:pointer;text-decoration:none;color:#fff;display:inline-block;}';
+                html += '.btn-primary{background:linear-gradient(135deg, #28a745 0%, #20c997 100%);}';
+                html += '.btn-secondary{background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);}';
                 html += '</style></head><body>';
-                html += '<div class="tip">长按视频或右键选择"另存为"保存</div>';
-                html += '<video controls autoplay playsinline src="' + currentVideoUrl + '"></video>';
+                html += '<div class="tip">长按视频可保存到相册</div>';
+                html += '<video id="video" controls autoplay playsinline src="' + currentVideoUrl + '"></video>';
+                html += '<div class="btn-group">';
+                html += '<a class="btn btn-primary" href="' + currentVideoUrl + '" download="douyin_video.mp4" target="_blank">点击下载视频</a>';
+                html += '</div>';
                 html += '</body></html>';
                 newWindow.document.write(html);
                 newWindow.document.close();
