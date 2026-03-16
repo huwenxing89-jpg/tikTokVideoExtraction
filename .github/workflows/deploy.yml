@@ -63,6 +63,7 @@ jobs:
           script: |
             powershell -Command "Get-Process -Name python -ErrorAction SilentlyContinue | Stop-Process -Force"
             powershell -Command "@('@echo off', 'cd /d ${{ secrets.TENCENT_DEPLOY_PATH }}', 'python -m waitress --host=0.0.0.0 --port=5000 app:app') | Out-File -FilePath 'C:\temp\start_service.bat' -Encoding ASCII -Force"
-            powershell -Command "Unregister-ScheduledTask -TaskName 'TikTokService' -Confirm:$false -ErrorAction SilentlyContinue"
-            powershell -Command "$action = New-ScheduledTaskAction -Execute 'C:\temp\start_service.bat' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}'; $trigger = New-ScheduledTaskTrigger -AtStartup; $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopOnIdleEnd -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Register-ScheduledTask -TaskName 'TikTokService' -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force"
-            powershell -Command "Start-ScheduledTask -TaskName 'TikTokService'; Start-Sleep -Seconds 5; Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | Select-Object LocalPort,State,OwningProcess"
+            cmd /c "schtasks /delete /tn TikTokService /f 2>nul"
+            cmd /c "schtasks /create /tn TikTokService /tr \"C:\temp\start_service.bat\" /sc ONSTART /rl HIGHEST /f"
+            cmd /c "schtasks /run /tn TikTokService"
+            powershell -Command "Start-Sleep -Seconds 8; netstat -ano | findstr :5000"
