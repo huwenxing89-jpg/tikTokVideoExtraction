@@ -62,6 +62,6 @@ jobs:
           command_timeout: 3m
           script: |
             cmd /c "net stop TikTokService 2>nul || echo Service not running"
-            cmd /c "net start TikTokService"
+            cmd /c "sc start TikTokService"
             cmd /c "ping -n 8 127.0.0.1 >nul"
             cmd /c "netstat -ano | findstr :5000"
