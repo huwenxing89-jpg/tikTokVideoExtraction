@@ -51,27 +51,4 @@ jobs:
           script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
-            powershell -Command "& {
-              $deployPath = '${{ secrets.TENCENT_DEPLOY_PATH }}'
-              Write-Host 'Stopping existing Python processes...'
-              $procs = Get-Process python -ErrorAction SilentlyContinue
-              if ($procs) {
-                Stop-Process -Name python -Force
-                Write-Host 'Stopped Python processes'
-                Start-Sleep -Seconds 3
-              } else {
-                Write-Host 'No Python processes found'
-              }
-              Write-Host 'Starting new service...'
-              Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory $deployPath -WindowStyle Hidden
-              Start-Sleep -Seconds 5
-              $newProcs = Get-Process python -ErrorAction SilentlyContinue
-              $port = netstat -ano | findstr ':5000.*LISTENING'
-              if ($newProcs -and $port) {
-                Write-Host 'Service started successfully'
-                Write-Host \"Process StartTime: $($newProcs[0].StartTime)\"
-              } else {
-                Write-Error 'Failed to start service'
-                exit 1
-              }
-            }"
+            powershell -Command "Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 3; Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden; Start-Sleep -Seconds 5; Write-Host 'Service restarted'; Get-Process python | Select-Object Id, StartTime, ProcessName"
