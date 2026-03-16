@@ -51,4 +51,8 @@ jobs:
           script: |
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt"
             powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install waitress"
-            powershell -Command "Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 3; Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden; Start-Sleep -Seconds 5; Write-Host 'Service restarted'; Get-Process python | Select-Object Id, StartTime, ProcessName"
+            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue"
+            powershell -Command "Start-Sleep -Seconds 3"
+            powershell -Command "Start-Process python -ArgumentList '-m waitress --host=0.0.0.0 --port=5000 app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
+            powershell -Command "Start-Sleep -Seconds 5"
+            powershell -Command "Get-Process python | Format-Table Id, StartTime, ProcessName -AutoSize"
