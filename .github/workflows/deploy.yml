@@ -49,10 +49,5 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 5m
-          script_stop: false
           script: |
-            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt; python -m pip install waitress"
-            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue; echo 'Step 1 done'"
-            powershell -Command "Start-Sleep -Seconds 2; echo 'Step 2 done'"
-            powershell -Command "cd '${{ secrets.TENCENT_DEPLOY_PATH }}'; Start-Process python -ArgumentList '-m waitress --host=0.0.0.0 --port=5000 app:app' -WindowStyle Hidden; echo 'Step 3 done'"
-            powershell -Command "Start-Sleep -Seconds 3; echo 'Step 4 done'; Get-Process python -ErrorAction SilentlyContinue"
+            powershell -Command "Set-Location '${{ secrets.TENCENT_DEPLOY_PATH }}'; python -m pip install -r requirements.txt; python -m pip install waitress; Stop-Process -Name python -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WindowStyle Hidden; Start-Sleep -Seconds 3; Write-Host 'Service restarted'; Get-Process python | Format-Table Id, StartTime, ProcessName"
