@@ -61,4 +61,4 @@ jobs:
           port: ${{ secrets.TENCENT_PORT || 22 }}
           command_timeout: 2m
           script: |
-            cmd /c "taskkill /F /IM python.exe 2>nul & cd /d ${{ secrets.TENCENT_DEPLOY_PATH }} & start /b python -m waitress --host=0.0.0.0 --port=5000 app:app"
+            powershell -Command "Stop-Process -Name python -Force -ErrorAction SilentlyContinue; Start-Process python -ArgumentList '-m', 'waitress', '--host=0.0.0.0', '--port=5000', 'app:app' -WorkingDirectory '${{ secrets.TENCENT_DEPLOY_PATH }}' -WindowStyle Hidden"
