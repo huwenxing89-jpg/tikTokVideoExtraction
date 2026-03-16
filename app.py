@@ -175,16 +175,38 @@ class DouyinParser:
                 if url_list:
                     video_urls[quality_name] = url_list[0]
 
+        # 尝试从 bit_rate 字段获取更多清晰度选项（通常是最高质量）
+        bit_rate_list = video.get('bit_rate', [])
+        if bit_rate_list and isinstance(bit_rate_list, list):
+            # bit_rate 通常是降序排列，第一个是最高清晰度
+            for i, br_item in enumerate(bit_rate_list):
+                if isinstance(br_item, dict):
+                    br_addr = br_item.get('play_addr', {})
+                    br_url_list = br_addr.get('url_list', [])
+                    if br_url_list:
+                        # 使用清晰度名称或码率作为标识
+                        gear_name = br_item.get('gear_name', f'bitrate_{i}')
+                        video_urls[f'bitrate_{gear_name}'] = br_url_list[0]
+
         # 选择最佳视频URL
-        # 优先级：origin > download > h265 > h264 > play
+        # 优先级：bitrate > origin > download > h265 > h264 > play
         video_url = None
         video_quality = None
 
-        for quality in ['origin', 'download', 'h265', 'h264', 'h264_2', 'play']:
+        # 先检查 bit_rate 中的最高清晰度
+        for quality in ['bitrate_1080p', 'bitrate_720p', 'bitrate_540p', 'bitrate_480p']:
             if quality in video_urls:
                 video_url = video_urls[quality]
                 video_quality = quality
                 break
+
+        # 如果没有找到 bit_rate，使用其他字段
+        if not video_url:
+            for quality in ['origin', 'download', 'h265', 'h264', 'h264_2', 'play']:
+                if quality in video_urls:
+                    video_url = video_urls[quality]
+                    video_quality = quality
+                    break
 
         # 处理视频URL，尝试获取最高清晰度
         if video_url:
@@ -193,6 +215,9 @@ class DouyinParser:
             # 尝试获取更高清晰度：修改 ratio 参数
             if 'ratio=' in video_url:
                 video_url = re.sub(r'ratio=[^&]+', 'ratio=origin', video_url)
+            # 添加无水印参数
+            if 'lr=' not in video_url:
+                video_url += '&lr=unwatermarked' if '?' in video_url else '?lr=unwatermarked'
 
         # 同样处理所有视频URL（用于调试显示）
         for quality in video_urls:
