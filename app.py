@@ -491,12 +491,24 @@ def proxy_video():
         return "Missing URL", 400
 
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
-            'Referer': 'https://www.douyin.com/',
-        }
+        # 根据URL选择合适的请求头
+        if 'aweme.snssdk.com' in video_url or 'douyinvod.com' in video_url:
+            # 抖音CDN需要特定的请求头
+            headers = {
+                'User-Agent': 'com.ss.android.ugc.aweme/340101 (Linux; U; Android 10; zh_CN; Pixel 4; Build/QQ3A.200805.001; Cronet/TTNetVersion:6b743193)',
+                'Accept-Encoding': 'gzip',
+                'Accept': '*/*',
+            }
+        else:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://www.douyin.com/',
+                'Accept': '*/*',
+                'Accept-Encoding': 'identity',
+                'Connection': 'keep-alive',
+            }
 
-        # 跟随重定向获取最终的视频
+        # 请求视频（直接跟随重定向）
         response = requests.get(video_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
 
         # 检查是否成功获取视频
