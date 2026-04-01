@@ -1,0 +1,80 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- Logo 区域 -->
+  <view class="logo-section">
+    <view class="logo-icon">📱</view>
+    <view class="logo-title">抖音视频下载</view>
+    <view class="logo-desc">无水印下载 · 图文视频都支持</view>
+  </view>
+
+  <!-- 输入区域 -->
+  <view class="card">
+    <view class="input-label">粘贴抖音分享链接</view>
+    <view class="input-wrapper">
+      <textarea
+        class="input-area"
+        placeholder="在此粘贴抖音分享链接..."
+        value="{{shareText}}"
+        bindinput="onInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="input-actions">
+        <view class="action-btn" bindtap="pasteFromClipboard">
+          <text class="action-icon">📋</text>
+          <text>粘贴</text>
+        </view>
+        <view class="action-btn" bindtap="clearInput" wx:if="{{shareText}}">
+          <text class="action-icon">🗑️</text>
+          <text>清空</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 解析按钮 -->
+    <button
+      class="parse-btn {{loading ? 'disabled' : ''}}"
+      bindtap="parseVideo"
+      disabled="{{loading}}"
+    >
+      <text wx:if="{{loading}}">解析中...</text>
+      <text wx:else>解析视频</text>
+    </button>
+
+    <!-- 使用说明 -->
+    <view class="help-link" bindtap="showHelp">
+      <text>❓ 如何获取分享链接？</text>
+    </view>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="card" wx:if="{{history.length > 0}}">
+    <view class="history-header">
+      <text class="history-title">最近解析</text>
+      <text class="history-clear" bindtap="clearHistory">清空</text>
+    </view>
+    <view class="history-list">
+      <view
+        class="history-item"
+        wx:for="{{history}}"
+        wx:key="time"
+        data-index="{{index}}"
+        bindtap="onHistoryTap"
+      >
+        <image class="history-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="history-info">
+          <view class="history-item-title">{{item.title}}</view>
+          <view class="history-meta">
+            <text>@{{item.author}}</text>
+            <text class="history-type">{{item.type === 'images' ? '图文' : '视频'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="footer">
+    <text>仅供学习交流使用，请尊重原创者版权</text>
+  </view>
+</view>

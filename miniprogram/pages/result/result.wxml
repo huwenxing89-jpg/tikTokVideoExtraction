@@ -1,0 +1,111 @@
+<!--pages/result/result.wxml-->
+<view class="container" wx:if="{{videoInfo}}">
+  <!-- 作者信息 -->
+  <view class="author-card">
+    <image class="author-avatar" src="{{videoInfo.author_avatar}}" mode="aspectFill" />
+    <view class="author-info">
+      <text class="author-name">@{{videoInfo.author}}</text>
+    </view>
+  </view>
+
+  <!-- 视频内容 -->
+  <view class="content-card">
+    <!-- 视频类型 -->
+    <block wx:if="{{videoInfo.content_type === 'video'}}">
+      <view class="video-wrapper">
+        <video
+          class="video-player"
+          src="{{proxyVideoUrl}}"
+          poster="{{videoInfo.cover_url}}"
+          controls
+          show-center-play-btn
+          enable-progress-gesture
+        />
+        <view class="video-duration" wx:if="{{videoInfo.duration}}">
+          {{videoInfo.durationText}}
+        </view>
+      </view>
+    </block>
+
+    <!-- 图文类型 -->
+    <block wx:if="{{videoInfo.content_type === 'images'}}">
+      <swiper
+        class="image-swiper"
+        indicator-dots
+        autoplay="{{false}}"
+        circular
+        bindchange="onImageChange"
+      >
+        <swiper-item wx:for="{{videoInfo.images}}" wx:key="index">
+          <image
+            class="preview-image"
+            src="{{item}}"
+            mode="aspectFit"
+            data-src="{{item}}"
+            bindtap="previewImage"
+          />
+        </swiper-item>
+      </swiper>
+      <view class="image-counter">
+        {{currentImageIndex + 1}} / {{videoInfo.image_count}}
+      </view>
+    </block>
+
+    <!-- 标题 -->
+    <view class="video-title" wx:if="{{videoInfo.title}}">
+      {{videoInfo.title}}
+    </view>
+
+    <!-- 数据统计 -->
+    <view class="stats">
+      <view class="stat-item">
+        <text class="stat-icon">❤️</text>
+        <text class="stat-value">{{videoInfo.likeText}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-icon">💬</text>
+        <text class="stat-value">{{videoInfo.commentText}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-icon">🔄</text>
+        <text class="stat-value">{{videoInfo.shareText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-card">
+    <!-- 视频下载 -->
+    <block wx:if="{{videoInfo.content_type === 'video'}}">
+      <button class="action-btn primary" bindtap="downloadVideo" disabled="{{downloading}}">
+        <text class="btn-icon">⬇️</text>
+        <text>{{downloading ? '下载中...' : '保存视频到相册'}}</text>
+      </button>
+      <button class="action-btn outline" bindtap="copyVideoUrl">
+        <text class="btn-icon">🔗</text>
+        <text>复制视频链接</text>
+      </button>
+    </block>
+
+    <!-- 图片下载 -->
+    <block wx:if="{{videoInfo.content_type === 'images'}}">
+      <button class="action-btn primary" bindtap="saveAllImages" disabled="{{downloading}}">
+        <text class="btn-icon">⬇️</text>
+        <text>{{downloading ? '保存中...' : '保存全部图片'}}</text>
+      </button>
+      <view class="action-tip">
+        提示：点击图片可预览，长按可保存单张
+      </view>
+    </block>
+
+    <button class="action-btn secondary" bindtap="goBack">
+      <text class="btn-icon">🏠</text>
+      <text>返回首页</text>
+    </button>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-container" wx:else>
+  <view class="loading-text">加载中...</view>
+</view>

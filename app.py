@@ -527,6 +527,7 @@ def proxy_video():
             'Content-Length': content_length,
             'Accept-Ranges': 'bytes',
             'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
         }
 
         # 如果是下载模式，添加 Content-Disposition 头
