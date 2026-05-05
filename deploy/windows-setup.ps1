@@ -31,10 +31,10 @@ pip install waitress
 
 # 配置防火墙开放端口
 Write-Host "配置防火墙规则..."
-$rule = Get-NetFirewallRule -DisplayName "TikTok Extraction - Port 6000" -ErrorAction SilentlyContinue
+$rule = Get-NetFirewallRule -DisplayName "TikTok Extraction - Port 5000" -ErrorAction SilentlyContinue
 if (-not $rule) {
-    New-NetFirewallRule -DisplayName "TikTok Extraction - Port 6000" -Direction Inbound -LocalPort 6000 -Protocol TCP -Action Allow
-    Write-Host "已添加防火墙规则，开放端口 6000" -ForegroundColor Green
+    New-NetFirewallRule -DisplayName "TikTok Extraction - Port 5000" -Direction Inbound -LocalPort 5000 -Protocol TCP -Action Allow
+    Write-Host "已添加防火墙规则，开放端口 5000" -ForegroundColor Green
 } else {
     Write-Host "防火墙规则已存在"
 }
@@ -44,6 +44,6 @@ Write-Host "请将项目文件上传到: $DeployPath"
 Write-Host ""
 Write-Host "手动启动应用："
 Write-Host "  cd $DeployPath"
-Write-Host "  python -m waitress --host=0.0.0.0 --port=6000 app:app"
+Write-Host "  python -m waitress --host=0.0.0.0 --port=5000 app:app"
 Write-Host ""
 Write-Host "如需注册为 Windows 服务，请下载 WinSW: https://github.com/winsw/winsw"

@@ -6,7 +6,7 @@
   <name>TikTok Video Extraction</name>
   <description>TikTok Video Extraction Web Application</description>
   <executable>C:\Python310\python.exe</executable>
-  <arguments>-m waitress --host=0.0.0.0 --port=6000 --threads=4 app:app</arguments>
+  <arguments>-m waitress --host=0.0.0.0 --port=5000 --threads=4 app:app</arguments>
   <workingdirectory>C:\inetpub\wwwroot\tikTokVideoExtraction</workingdirectory>
   <logpath>C:\inetpub\wwwroot\tikTokVideoExtraction\logs</logpath>
   <log mode="roll-by-size">

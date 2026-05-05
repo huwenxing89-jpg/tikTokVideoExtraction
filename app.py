@@ -546,6 +546,46 @@ def proxy_video():
         return f"Proxy error: {str(e)}", 500
 
 
+@app.route('/api/proxy/image')
+def proxy_image():
+    """代理图片，用于小程序加载抖音图片（绕过防盗链）"""
+    image_url = request.args.get('url')
+    if not image_url:
+        return "Missing URL", 400
+
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+            'Referer': 'https://www.douyin.com/',
+            'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+        }
+
+        response = requests.get(image_url, headers=headers, stream=True, timeout=15, allow_redirects=True)
+
+        if response.status_code != 200:
+            return f"Image fetch failed: {response.status_code}", response.status_code
+
+        content_type = response.headers.get('Content-Type', 'image/jpeg')
+
+        def generate():
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    yield chunk
+
+        response_headers = {
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*',
+        }
+
+        return app.response_class(
+            generate(),
+            mimetype=content_type,
+            headers=response_headers
+        )
+    except Exception as e:
+        return f"Proxy error: {str(e)}", 500
+
+
 @app.route('/api/redirect/download')
 def redirect_download():
     """返回302重定向到抖音CDN，让浏览器直接下载"""
