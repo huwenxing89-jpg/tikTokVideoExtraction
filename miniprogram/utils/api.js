@@ -72,6 +72,15 @@ function getProxyVideoUrl(videoUrl) {
 }
 
 /**
+ * 获取代理图片URL（用于加载抖音图片，绕过防盗链）
+ * @param {string} imageUrl - 原始图片URL
+ * @returns {string} 代理URL
+ */
+function getProxyImageUrl(imageUrl) {
+  return `${app.globalData.baseUrl}/api/proxy/image?url=${encodeURIComponent(imageUrl)}`
+}
+
+/**
  * 获取下载URL
  * @param {string} videoUrl - 原始视频URL
  * @param {string} filename - 文件名
@@ -108,6 +117,7 @@ module.exports = {
   parseVideo,
   checkQuality,
   getProxyVideoUrl,
+  getProxyImageUrl,
   getDownloadUrl,
   formatNumber,
   formatDuration

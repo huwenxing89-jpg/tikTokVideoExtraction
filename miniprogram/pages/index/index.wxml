@@ -61,7 +61,7 @@
         data-index="{{index}}"
         bindtap="onHistoryTap"
       >
-        <image class="history-cover" src="{{item.cover}}" mode="aspectFill" />
+        <image class="history-cover" src="{{item.proxyCover}}" mode="aspectFill" />
         <view class="history-info">
           <view class="history-item-title">{{item.title}}</view>
           <view class="history-meta">

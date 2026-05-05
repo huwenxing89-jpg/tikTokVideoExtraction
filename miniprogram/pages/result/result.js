@@ -15,13 +15,22 @@ Page({
         const videoInfo = JSON.parse(decodeURIComponent(options.data))
         const proxyVideoUrl = videoInfo.video_url ? api.getProxyVideoUrl(videoInfo.video_url) : ''
 
+        // 代理图片URL（绕过防盗链）
+        const proxyAuthorAvatar = videoInfo.author_avatar ? api.getProxyImageUrl(videoInfo.author_avatar) : ''
+        const proxyCoverUrl = videoInfo.cover_url ? api.getProxyImageUrl(videoInfo.cover_url) : ''
+        const proxyImages = videoInfo.images ? videoInfo.images.map(img => api.getProxyImageUrl(img)) : []
+
         // 预格式化数据
         const formattedData = {
           ...videoInfo,
           durationText: this.formatDuration(videoInfo.duration || 0),
           likeText: this.formatCount(videoInfo.like_count || 0),
           commentText: this.formatCount(videoInfo.comment_count || 0),
-          shareText: this.formatCount(videoInfo.share_count || 0)
+          shareText: this.formatCount(videoInfo.share_count || 0),
+          // 使用代理后的URL
+          author_avatar: proxyAuthorAvatar,
+          cover_url: proxyCoverUrl,
+          images: proxyImages
         }
 
         this.setData({
@@ -50,16 +59,6 @@ Page({
     return num.toString()
   },
 
-  // 格式化数字
-  formatNumber(num) {
-    return api.formatNumber(num)
-  },
-
-  // 格式化时长
-  formatDuration(seconds) {
-    return api.formatDuration(seconds)
-  },
-
   // 图片切换
   onImageChange(e) {
     this.setData({
@@ -67,56 +66,16 @@ Page({
     })
   },
 
-  // 预览图片
+  // 预览图片（使用原始URL预览，预览接口不受防盗链限制）
   previewImage(e) {
     const { src } = e.currentTarget.dataset
+    // 预览使用代理后的URL
     const images = this.data.videoInfo.images
 
     wx.previewImage({
       current: src,
       urls: images
     })
-  },
-
-  // 保存图片
-  async saveImage(e) {
-    const { src } = e.currentTarget.dataset
-
-    try {
-      wx.showLoading({ title: '下载中...' })
-
-      // 先下载图片
-      const downloadRes = await wx.downloadFile({
-        url: src
-      })
-
-      if (downloadRes.statusCode === 200) {
-        // 保存到相册
-        await wx.saveImageToPhotosAlbum({
-          filePath: downloadRes.tempFilePath
-        })
-
-        wx.showToast({ title: '已保存到相册', icon: 'success' })
-      } else {
-        throw new Error('下载失败')
-      }
-    } catch (e) {
-      if (e.errMsg && e.errMsg.includes('auth deny')) {
-        wx.showModal({
-          title: '提示',
-          content: '需要您授权保存图片到相册',
-          success: (res) => {
-            if (res.confirm) {
-              wx.openSetting()
-            }
-          }
-        })
-      } else {
-        wx.showToast({ title: '保存失败', icon: 'none' })
-      }
-    } finally {
-      wx.hideLoading()
-    }
   },
 
   // 保存全部图片

@@ -11,7 +11,12 @@ Page({
   onLoad() {
     // 加载历史记录
     const history = wx.getStorageSync('parseHistory') || []
-    this.setData({ history: history.slice(0, 10) }) // 最多显示10条
+    // 历史记录封面也使用代理URL
+    const processedHistory = history.slice(0, 10).map(item => ({
+      ...item,
+      proxyCover: item.cover ? api.getProxyImageUrl(item.cover) : ''
+    }))
+    this.setData({ history: processedHistory })
   },
 
   // 输入框内容变化
